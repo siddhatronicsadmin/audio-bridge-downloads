@@ -1,0 +1,34 @@
+name: Copy Audio Bridge Installer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  copy-installer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download existing release installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p download/1.0
+          gh release download 1.0 \
+            --repo siddhatronicsadmin/audio-bridge-downloads \
+            --pattern setup.exe \
+            --dir download/1.0
+
+      - name: Commit installer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add download/1.0/setup.exe
+          if ! git diff --cached --quiet; then
+            git commit -m "Add Audio Bridge direct download"
+            git push
+          fi
